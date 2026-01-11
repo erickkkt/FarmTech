@@ -1,0 +1,138 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  db:
+    image: postgres:15-alpine
+    container_name: farmtech_db
+    environment:
+      POSTGRES_DB: farmtech_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - farmtech-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis Cache and Message Broker
+  redis:
+    image: redis:7-alpine
+    container_name: farmtech_redis
+    ports:
+      - "6379:6379"
+    networks:
+      - farmtech-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Django Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: farmtech_backend
+    environment:
+      - SECRET_KEY=django-insecure-docker-dev-key-change-in-production
+      - DEBUG=True
+      - ALLOWED_HOSTS=localhost,127.0.0.1,backend
+      - DB_NAME=farmtech_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CORS_ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3001,http://localhost:80,http://localhost:81
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+      - backend_static:/app/staticfiles
+      - backend_media:/app/media
+    ports:
+      - "8000:8000"
+    networks:
+      - farmtech-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn --bind 0.0.0.0:8000 --workers 3 --reload farmtech_backend.wsgi:application"
+
+  # Celery Worker for Background Tasks
+  celery:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: farmtech_celery
+    environment:
+      - SECRET_KEY=django-insecure-docker-dev-key-change-in-production
+      - DEBUG=True
+      - DB_NAME=farmtech_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+    volumes:
+      - ./backend:/app
+    networks:
+      - farmtech-network
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: celery -A farmtech_backend worker -l info
+
+  # Web Admin Application
+  farmadmin:
+    build:
+      context: ./farmadmin
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:8000/api
+    container_name: farmtech_farmadmin
+    ports:
+      - "3000:80"
+    networks:
+      - farmtech-network
+    depends_on:
+      - backend
+
+  # Web User Application
+  webuser:
+    build:
+      context: ./webuser
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_API_URL: http://localhost:8000/api
+    container_name: farmtech_webuser
+    ports:
+      - "3001:80"
+    networks:
+      - farmtech-network
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
+  backend_static:
+  backend_media:
+
+networks:
+  farmtech-network:
+    driver: bridge

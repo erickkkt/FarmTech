@@ -51,6 +51,35 @@ Located in `/MobileUser`
 
 ## Getting Started
 
+You can run FarmTech in two ways:
+1. **Using Docker** (Recommended for quick setup) - See [DOCKER.md](DOCKER.md)
+2. **Manual Setup** (For development) - Instructions below
+
+### Docker Setup (Recommended)
+
+The easiest way to get started is using Docker:
+
+```bash
+# Clone the repository
+git clone https://github.com/erickkkt/FarmTech.git
+cd FarmTech
+
+# Start all services with Docker Compose
+docker-compose up -d
+
+# Create a superuser
+docker-compose exec backend python manage.py createsuperuser
+
+# Access the applications
+# Backend API: http://localhost:8000
+# Web Admin: http://localhost:3000
+# Web User: http://localhost:3001
+```
+
+For detailed Docker instructions, see [DOCKER.md](DOCKER.md).
+
+### Manual Setup
+
 ### Prerequisites
 
 - Python 3.9+
