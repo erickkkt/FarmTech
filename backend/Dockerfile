@@ -13,7 +13,6 @@ RUN apt-get update && apt-get install -y \
     postgresql-client \
     gcc \
     python3-dev \
-    musl-dev \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
@@ -24,9 +23,6 @@ RUN pip install --upgrade pip && \
 
 # Copy project files
 COPY . /app/
-
-# Collect static files
-RUN python manage.py collectstatic --noinput || true
 
 # Expose port
 EXPOSE 8000
