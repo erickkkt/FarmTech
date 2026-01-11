@@ -1,0 +1,12 @@
+# Additional packages needed for MobileAdmin
+# Run: npm install --save <package-name>
+
+@react-navigation/native
+@react-navigation/native-stack
+@react-navigation/drawer
+react-native-screens
+react-native-gesture-handler
+axios
+@react-native-async-storage/async-storage
+react-native-dotenv
+react-native-vector-icons

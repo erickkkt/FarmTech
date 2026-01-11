@@ -1,0 +1,106 @@
+# FarmTech Mobile Admin App
+
+React Native mobile application for FarmTech administrators.
+
+## Features
+
+- Admin authentication
+- Dashboard with statistics
+- Farm management (CRUD)
+- Animal management (CRUD)
+- Vaccination tracking
+- Marketplace management
+- Push notifications
+
+## Tech Stack
+
+- React Native
+- React Navigation
+- Axios for API calls
+- AsyncStorage for local data
+
+## Prerequisites
+
+- Node.js >= 18
+- React Native development environment set up
+- For iOS: Xcode and CocoaPods
+- For Android: Android Studio and SDK
+
+## Setup
+
+1. Install dependencies:
+```bash
+npm install
+# For iOS only
+cd ios && pod install && cd ..
+```
+
+2. Create a `.env` file based on `.env.example`:
+```bash
+cp .env.example .env
+```
+
+3. Update the `.env` file with your API URL:
+```
+API_URL=http://your-api-url:8000/api
+```
+
+## Running the App
+
+### Android
+```bash
+npx react-native run-android
+```
+
+### iOS
+```bash
+npx react-native run-ios
+```
+
+## Build for Production
+
+### Android
+```bash
+cd android
+./gradlew assembleRelease
+```
+
+### iOS
+Open `ios/MobileAdmin.xcworkspace` in Xcode and archive the app.
+
+## API Integration
+
+The app communicates with the Django backend via REST API. Make sure the backend is accessible from your mobile device/emulator.
+
+For local development:
+- Android emulator: Use `http://10.0.2.2:8000/api`
+- iOS simulator: Use `http://localhost:8000/api`
+- Physical device: Use your computer's IP address
+
+## Project Structure
+
+```
+src/
+├── components/     # Reusable React Native components
+├── context/       # React context providers
+│   └── AuthContext.js
+├── navigation/    # Navigation configuration
+│   └── AppNavigator.js
+├── screens/       # Screen components
+│   ├── LoginScreen.js
+│   ├── DashboardScreen.js
+│   ├── FarmsScreen.js
+│   └── AnimalsScreen.js
+├── services/      # API service layers
+│   ├── api.js
+│   ├── authService.js
+│   └── dataService.js
+└── App.js         # Main app component
+```
+
+## Troubleshooting
+
+If you encounter issues:
+1. Clear the cache: `npx react-native start --reset-cache`
+2. Clean build folders: `cd android && ./gradlew clean`
+3. Reinstall dependencies: `rm -rf node_modules && npm install`
